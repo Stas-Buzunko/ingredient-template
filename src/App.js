@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import firebase from 'firebase';
 import logo from './logo.svg';
 import './App.css';
+import { Button } from 'react-bootstrap';
+// import categories from './Categories';
+
 
 class App extends Component {
   constructor(props) {
@@ -36,6 +39,8 @@ class App extends Component {
     }))
   }
 
+
+
   fetchCategories() {
     firebase.database().ref('categories').on('value', snapshot => {
       const categories = snapshot.val();
@@ -61,34 +66,50 @@ class App extends Component {
   }
 
   render() {
-    console.log(this.state.categories)
-    return (
-      <div className="container">
-      <div className="text-center">
-        <div className="btn-group buttons">
-          <button className="btn btn-default btn-lg topbutton">ALL</button>
-          <button className="btn btn-default btn-lg topbutton">MEAT</button>
-          <button className="btn btn-default btn-lg topbutton">FISH</button>
-          <button className="btn btn-default btn-lg topbutton">VEGETABLES</button>
-          <button className="btn btn-default btn-lg topbutton">FRUIT</button>
+
+
+
+    const categorytItems = this.state.categories.map((category) => {
+      return (
+        <Button bsStyle="primary" key={category.category} >{category.category} </Button>
+      );
+    });
+
+    const dataItems = this.state.data.map((item) => {
+      return (
+        <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 item" key={item.id}>
+          <div class="thumbnail">
+          <img className="img-responsive thumbnail" src={item.url} width="250" height="200"  alt=""/>
+           <div class="caption">
+          <h4>{item.name}</h4>
+           <h5>{item.characteristics[0]}</h5>
+           <h5>{item.characteristics[1]}</h5>
+           <h5>{item.characteristics[2]}</h5>
         </div>
       </div>
-      <div className="row rows">
-         <div className="col-md-3 col-sm-6 col-xs-12 imgnew">	<img className="img-responsive thumbnail" src="https://raw.githubusercontent.com/Stas-Buzunko/ingredient-template/50c1f56582e84edbaf8b81b2fc5f2eee552a16fd/public/img/1.jpg" width="250" height="200"  alt=""/>
-        <h4>Name</h4> <h5>Tags</h5></div>
-         <div className="col-md-3 col-sm-6 col-xs-12 imgnew">	<img className ="img-responsive thumbnail" src="https://raw.githubusercontent.com/Stas-Buzunko/ingredient-template/50c1f56582e84edbaf8b81b2fc5f2eee552a16fd/public/img/1.jpg" width="250" height="200"  alt=""/>  <h4>Name</h4> <h5>Tags</h5></div>
-          <div className="col-md-3 col-sm-6 col-xs-12 imgnew">	<img className ="img-responsive thumbnail" src="https://raw.githubusercontent.com/Stas-Buzunko/ingredient-template/50c1f56582e84edbaf8b81b2fc5f2eee552a16fd/public/img/1.jpg" width="250" height="200"  alt=""/> <h4>Name</h4> <h5>Tags</h5></div>
-            <div className="col-md-3 col-sm-6 col-xs-12 imgnew">	<img className ="img-responsive thumbnail" src="https://raw.githubusercontent.com/Stas-Buzunko/ingredient-template/50c1f56582e84edbaf8b81b2fc5f2eee552a16fd/public/img/1.jpg" width="250" height="200"  alt=""/> <h4>Name</h4> <h5>Tags</h5></div>
+    </div>
+    );
+  });
+
+
+    return (
+      <div>
+        <div className="container">
+          <div className="text-center">
+            <div className="btn-group buttons">
+              {categorytItems }
             </div>
-              <div className="row rows">
-                <div className="col-md-3 col-sm-6 col-xs-12  imgnew">	<img className ="img-responsive thumbnail" src="https://raw.githubusercontent.com/Stas-Buzunko/ingredient-template/50c1f56582e84edbaf8b81b2fc5f2eee552a16fd/public/img/1.jpg" width="250" height="200"  alt=""/> <h4>Name</h4> <h5>Tags</h5></div>
-                  <div className="col-md-3 col-sm-6 col-xs-12  imgnew">	<img className ="img-responsive thumbnail" src="https://raw.githubusercontent.com/Stas-Buzunko/ingredient-template/50c1f56582e84edbaf8b81b2fc5f2eee552a16fd/public/img/1.jpg" width="250" height="200"  alt=""/> <h4>Name</h4> <h5>Tags</h5></div>
-                    <div className="col-md-3 col-sm-6 col-xs-12  imgnew">	<img className ="img-responsive thumbnail" src="https://raw.githubusercontent.com/Stas-Buzunko/ingredient-template/50c1f56582e84edbaf8b81b2fc5f2eee552a16fd/public/img/1.jpg" width="250" height="200"  alt=""/> <h4>Name</h4> <h5>Tags</h5></div>
-                      <div className="col-md-3 col-sm-6 col-xs-12  imgnew">	<img className ="img-responsive thumbnail" src="https://raw.githubusercontent.com/Stas-Buzunko/ingredient-template/50c1f56582e84edbaf8b81b2fc5f2eee552a16fd/public/img/1.jpg" width="250" height="200"  alt=""/> <h4>Name</h4> <h5>Tags</h5></div>
-                      </div>
-                    </div>
+          </div>
+
+          <div className="row rows">
+
+              {dataItems}
+          
+          </div>
+        </div>
+      </div>
+
     );
   }
 }
-
 export default App;
