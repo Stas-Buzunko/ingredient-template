@@ -8,12 +8,15 @@ class App extends Component {
     super(props);
 
     this.state = {
+      categories: [],
       data: []
     }
   }
   componentDidMount() {
     const storageRef = firebase.storage().ref('images/ingredients/');
-    firebase.database().ref('data').on('value', (snapshot => {
+    // fetch data from /data
+    firebase.database().ref('data').once('value', (snapshot => {
+      this.fetchCategories()
       const data = snapshot.val();
       if (data !== null) {
         this.setState({data: []});
@@ -32,8 +35,33 @@ class App extends Component {
       }
     }))
   }
+
+  fetchCategories() {
+    firebase.database().ref('categories').on('value', snapshot => {
+      const categories = snapshot.val();
+      if (categories !== null) {
+        this.setState({categories: []});
+        categories.forEach(category => {
+          firebase.database().ref('data')
+          .orderByChild('category')
+          .equalTo(category)
+          .once('value', snapshot => {
+            const items = snapshot.val();
+            const length = items !== null ? Object.keys(items).length : 0;
+            this.setState({
+              categories: [
+                ...this.state.categories,
+                {category, length}
+              ]
+            })
+          })
+        })
+      }
+    })
+  }
+
   render() {
-    console.log(this.state.data)
+    console.log(this.state.categories)
     return (
       <div className="App">
         <h3>Example how to use</h3>
