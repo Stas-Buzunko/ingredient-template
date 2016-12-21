@@ -12,10 +12,25 @@ class App extends Component {
     }
   }
   componentDidMount() {
+    const storageRef = firebase.storage().ref('images/ingridients');
     firebase.database().ref('data').on('value', (snapshot => {
       const data = snapshot.val();
       if (data !== null) {
-        this.setState({data})
+        const dataWithPics = data.map(item => ({...item, url: `./img/${item.id}.jpg` }))
+        this.setState({data: dataWithPics})
+        // this.setState({data: []});
+        // data.forEach(item => {
+        //   storageRef.child(`${item.id}.jpg`).getDownloadURL()
+        //   .then(url => this.setState({
+        //     data: [
+        //       ...this.state.data,
+        //       {
+        //         ...item,
+        //         url
+        //       }
+        //     ]
+        //   }))
+        // })
       }
     }))
   }
@@ -23,13 +38,9 @@ class App extends Component {
     console.log(this.state.data)
     return (
       <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
-        </div>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        <h3>Example how to use</h3>
+        <h4>Make sure that this.state.data is not empty, otherwise this.state.data[0].url would produce an error</h4>
+        {this.state.data[0] && <img src={this.state.data[0].url} alt=""/>}
       </div>
     );
   }
