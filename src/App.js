@@ -12,25 +12,23 @@ class App extends Component {
     }
   }
   componentDidMount() {
-    const storageRef = firebase.storage().ref('images/ingridients');
+    const storageRef = firebase.storage().ref('images/ingredients/');
     firebase.database().ref('data').on('value', (snapshot => {
       const data = snapshot.val();
       if (data !== null) {
-        const dataWithPics = data.map(item => ({...item, url: `./img/${item.id}.jpg` }))
-        this.setState({data: dataWithPics})
-        // this.setState({data: []});
-        // data.forEach(item => {
-        //   storageRef.child(`${item.id}.jpg`).getDownloadURL()
-        //   .then(url => this.setState({
-        //     data: [
-        //       ...this.state.data,
-        //       {
-        //         ...item,
-        //         url
-        //       }
-        //     ]
-        //   }))
-        // })
+        this.setState({data: []});
+        data.forEach(item => {
+          storageRef.child(`${item.id}.jpg`).getDownloadURL()
+          .then(url => this.setState({
+            data: [
+              ...this.state.data,
+              {
+                ...item,
+                url
+              }
+            ]
+          }))
+        })
       }
     }))
   }
