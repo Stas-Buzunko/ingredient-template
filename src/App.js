@@ -1,9 +1,26 @@
 import React, { Component } from 'react';
+import firebase from 'firebase';
 import logo from './logo.svg';
 import './App.css';
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      data: []
+    }
+  }
+  componentDidMount() {
+    firebase.database().ref('data').on('value', (snapshot => {
+      const data = snapshot.val();
+      if (data !== null) {
+        this.setState({data})
+      }
+    }))
+  }
   render() {
+    console.log(this.state.data)
     return (
       <div className="App">
         <div className="App-header">
