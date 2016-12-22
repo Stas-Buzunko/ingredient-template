@@ -23,13 +23,11 @@ class App extends Component {
       this.updateData(snapshot.val()),
       this.fetchCategories()
     ]).then(([data, categories]) => {
-      const filteredCategories = [...categories, {category: 'All', length: this.composeCategories(categories)}];
-
       this.setState({
         data: data,
         filteredData: data,
-        categories: filteredCategories,
-        filteredCategories: filteredCategories
+        categories: [...categories, {category: 'All', length: this.composeCategories(categories)}],
+        filteredCategories: [{category: 'All', length: this.composeCategories(categories)}]
       });
     }));
   }
@@ -37,8 +35,8 @@ class App extends Component {
   updateData(data=[]) {
     const storageRef = firebase.storage().ref('images/ingredients/');
     const dataWithPics = data.map(item => storageRef.child(`${item.id}.jpg`)
-                                                    .getDownloadURL()
-                                                    .then(url => ({...item, url})));
+    .getDownloadURL()
+    .then(url => ({...item, url})));
 
     return Promise.all(dataWithPics);
   }
@@ -49,14 +47,14 @@ class App extends Component {
       const categories = snapshot.val() || [];
       const promises = categories.map(category => {
         return firebase.database().ref('data')
-                                  .orderByChild('category')
-                                  .equalTo(category)
-                                  .once('value')
-                                  .then(snapshot => {
-                                    const items = snapshot.val() || {};
-                                    const length = Object.keys(items).length;
-                                    return ({category, length})
-                                  });
+        .orderByChild('category')
+        .equalTo(category)
+        .once('value')
+        .then(snapshot => {
+          const items = snapshot.val() || {};
+          const length = Object.keys(items).length;
+          return ({category, length})
+        });
       });
       return Promise.all(promises);
     });
@@ -72,9 +70,9 @@ class App extends Component {
 
   changeFilter(category) {
     this.setState({
-        ...this.state,
-        filteredCategories: [category],
-        filteredData: this.state.data.filter((item) => category.category === 'All' || item.category === category.category)
+      ...this.state,
+      filteredCategories: [category],
+      filteredData: this.state.data.filter((item) => category.category === 'All' || item.category === category.category)
     });
   }
 
@@ -84,7 +82,7 @@ class App extends Component {
         <div className="container">
           <div className="text-center">
             <div className="btn-group buttons">
-              <Category categories={this.state.categories}
+              <Category categories={this.state.categories} filteredCategories={this.state.filteredCategories}
                 onClickItem={this.changeFilter.bind(this)}/>
               </div>
             </div>
