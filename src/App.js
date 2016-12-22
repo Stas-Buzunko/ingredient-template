@@ -34,6 +34,9 @@ class App extends Component {
   }
 
   fetchCategories() {
+
+
+
     firebase.database().ref('categories').once('value')
     .then(snapshot => {
       const categories = snapshot.val();
