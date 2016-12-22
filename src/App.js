@@ -12,82 +12,94 @@ class App extends Component {
 
     this.state = {
       categories: [],
-      data: []
+      data: [],
+      filteredCategories: [],
+      filteredData: []
     }
   }
 
   componentDidMount() {
-    firebase.database().ref('data').on('value', snapshot => this.updateData(snapshot.val()))
+    firebase.database().ref('data').on('value', snapshot => Promise.all([
+      this.updateData(snapshot.val()),
+      this.fetchCategories()
+    ]).then(([data, categories]) => {
+      const filteredCategories = [...categories, {category: 'All', length: this.composeCategories(categories)}];
+
+      this.setState({
+        data: data,
+        filteredData: data,
+        categories: filteredCategories,
+        filteredCategories: filteredCategories
+      });
+    }));
   }
 
-  updateData(data) {
+  updateData(data=[]) {
     const storageRef = firebase.storage().ref('images/ingredients/');
-    this.fetchCategories()
-    if (data !== null) {
-      const dataWithPics = data.map(item => {
-        return storageRef.child(`${item.id}.jpg`).getDownloadURL()
-          .then(url => ({...item, url}))
-      })
-      Promise.all(dataWithPics)
-      .then(result => this.setState({data: result}))
-    }
+    const dataWithPics = data.map(item => storageRef.child(`${item.id}.jpg`)
+                                                    .getDownloadURL()
+                                                    .then(url => ({...item, url})));
+
+    return Promise.all(dataWithPics);
   }
 
   fetchCategories() {
-
-
-
-    firebase.database().ref('categories').once('value')
+    return firebase.database().ref('categories').once('value')
     .then(snapshot => {
-      const categories = snapshot.val();
-      if (categories !== null) {
-        const promises = categories.map(category => {
-          return firebase.database().ref('data')
-          .orderByChild('category')
-          .equalTo(category)
-          .once('value')
-          .then(snapshot => {
-            const items = snapshot.val();
-            const length = items !== null ? Object.keys(items).length : 0;
-            return ({category, length})
-          })
-        })
-        return Promise.all(promises)
-      }
-    })
-    .then(categories => {
-      const numAll = categories.reduce((accumulator, item) => {
-        return accumulator += item.length;
-      }, 0);
-
-      this.setState({
-        categories: [
-          ...categories,
-          {category: 'All', length: numAll}
-        ]
-      })
-    })
+      const categories = snapshot.val() || [];
+      const promises = categories.map(category => {
+        return firebase.database().ref('data')
+                                  .orderByChild('category')
+                                  .equalTo(category)
+                                  .once('value')
+                                  .then(snapshot => {
+                                    const items = snapshot.val() || {};
+                                    const length = Object.keys(items).length;
+                                    return ({category, length})
+                                  });
+      });
+      return Promise.all(promises);
+    });
   }
 
- render() {
-   return (
-     <div>
-       <div className="container">
-         <div className="text-center">
-           <div className="btn-group buttons">
-             <Category categories={this.state.categories}/>
-           </div>
-         </div>
+  composeCategories(categories) {
+    const numAll = categories.reduce((accumulator, item) => {
+      return accumulator += item.length;
+    }, 0);
 
-         <div className="row rows">
-           <Data data={this.state.data}/>
-         </div>
-       </div>
-     </div>
+    return numAll;
+  }
 
-   );
- }
-}
+  changeFilter(category) {
+    this.setState({
+        ...this.state,
+        filteredCategories: [category],
+        filteredData: this.state.data.filter((item) => category.category === 'All' || item.category === category.category)
+    });
+  }
+
+  render() {
+    return (
+      <div>
+        <div className="container">
+          <div className="text-center">
+            <div className="btn-group buttons">
+              <Category categories={this.state.categories}
+                onClickItem={this.changeFilter.bind(this)}/>
+              </div>
+            </div>
+
+            <div>Selected: {this.state.filteredCategories.map(c => c.category).join(' ')} </div>
+
+            <div className="row rows">
+              <Data data={this.state.filteredData}/>
+            </div>
+          </div>
+        </div>
+
+      );
+    }
+  }
 
 
-export default App;
+  export default App;

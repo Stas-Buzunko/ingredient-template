@@ -3,18 +3,18 @@ import { Button } from 'react-bootstrap';
 
 
 
-const Category = ({categories}) => {
-
+const Category = ({categories, onClickItem}) => {
   const categorytItems = categories.map((item) => {
     return (
-      <Button bsStyle="primary btn-lg" key={item.category} >{item.category}({item.length}) </Button>
+      <Button onClick={() => onClickItem(item)} bsStyle="primary btn-lg" key={item.category} >{item.category}({item.length}) </Button>
     );
-  }
-  );
+  });
+
   return (
     <div>
       {categorytItems}
     </div>
   )
-  };
-      export default Category ;
+};
+
+export default Category ;
