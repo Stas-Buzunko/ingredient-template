@@ -27,7 +27,6 @@ class App extends Component {
     .then(snapshot => {
       const data = snapshot.val();
       if (data !== null) {
-        this.setState({data: []});
         const dataWithPics = data.map(item => {
           return storageRef.child(`${item.id}.jpg`).getDownloadURL()
             .then(url => ({...item, url}))
@@ -39,54 +38,39 @@ class App extends Component {
   }
 
   fetchCategories() {
-    firebase.database().ref('categories').on('value', snapshot => {
+    firebase.database().ref('categories').once('value')
+    .then(snapshot => {
       const categories = snapshot.val();
       if (categories !== null) {
-        this.setState({categories: []});
-        categories.forEach(category => {
-          firebase.database().ref('data')
+        const promises = categories.map(category => {
+          return firebase.database().ref('data')
           .orderByChild('category')
           .equalTo(category)
-          .once('value', snapshot => {
+          .once('value')
+          .then(snapshot => {
             const items = snapshot.val();
             const length = items !== null ? Object.keys(items).length : 0;
-
-            this.setState({
-              categories: [
-                ...this.state.categories,
-                {category, length}
-              ]
-            })
+            return ({category, length})
           })
         })
+        return Promise.all(promises)
       }
+    })
+    .then(categories => {
+      const numAll = categories.reduce((accumulator, item) => {
+        return accumulator += item.length;
+      }, 0);
+
+      this.setState({
+        categories: [
+          ...categories,
+          {category: 'All', length: numAll}
+        ]
+      })
     })
   }
 
-  buttonAll(){
-    const numAll = this.state.categories.reduce((accumulator, item) => {
-
-      return accumulator += item.length;
-    }, 0);
-
-    console.log(numAll)
-
-    this.setState({
-      categories: [
-        ...this.state.categories,
-        {all: numAll}
-      ]
-    }
-  );
-
-}
-
-
-
  render() {
-
-   console.log(this.state.categories);
-
    return (
      <div>
        <div className="container">
