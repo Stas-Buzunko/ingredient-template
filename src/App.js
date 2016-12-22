@@ -15,79 +15,61 @@ class App extends Component {
       data: []
     }
   }
+
   componentDidMount() {
-    const storageRef = firebase.storage().ref('images/ingredients/');
-    // fetch data from /data
-    firebase.database().ref('data').once('value', (snapshot => {
-      this.fetchCategories()
-      const data = snapshot.val();
-      if (data !== null) {
-        this.setState({data: []});
-        data.forEach(item => {
-          storageRef.child(`${item.id}.jpg`).getDownloadURL()
-          .then(url => this.setState({
-            data: [
-              ...this.state.data,
-              {
-                ...item,
-                url
-              }
-            ]
-          }))
-        })
-      }
-    }))
+    firebase.database().ref('data').on('value', snapshot => this.updateData(snapshot.val()))
   }
 
-
+  updateData(data) {
+    const storageRef = firebase.storage().ref('images/ingredients/');
+    this.fetchCategories()
+    if (data !== null) {
+      const dataWithPics = data.map(item => {
+        return storageRef.child(`${item.id}.jpg`).getDownloadURL()
+          .then(url => ({...item, url}))
+      })
+      Promise.all(dataWithPics)
+      .then(result => this.setState({data: result}))
+    }
+  }
 
   fetchCategories() {
-     firebase.database().ref('categories').on('value', snapshot => {
-       const categories = snapshot.val();
-       if (categories !== null) {
-         this.setState({categories: []});
-         categories.forEach(category => {
-           firebase.database().ref('data')
-           .orderByChild('category')
-           .equalTo(category)
-           .once('value', snapshot => {
-             const items = snapshot.val();
-             const length = items !== null ? Object.keys(items).length : 0;
-             this.setState({
-               categories: [
-                 ...this.state.categories,
-                 {category, length}
-               ]
-             })
-           })
-         })
-       }
-     }).then(() =>this.buttonAll())
-   }
-
-   buttonAll(){
-     const numAll = this.state.categories.reduce((accumulator, item) => {
-       return accumulator += item.length;
-     }, 0);
-
-     console.log(numAll)
-
-     this.setState({
-       categories: [
-         ...this.state.categories,
-        {category: 'All', length: numAll}
-       ]
-     }
-   );
-
- }
 
 
+
+    firebase.database().ref('categories').once('value')
+    .then(snapshot => {
+      const categories = snapshot.val();
+      if (categories !== null) {
+        const promises = categories.map(category => {
+          return firebase.database().ref('data')
+          .orderByChild('category')
+          .equalTo(category)
+          .once('value')
+          .then(snapshot => {
+            const items = snapshot.val();
+            const length = items !== null ? Object.keys(items).length : 0;
+            return ({category, length})
+          })
+        })
+        return Promise.all(promises)
+      }
+    })
+    .then(categories => {
+      const numAll = categories.reduce((accumulator, item) => {
+        return accumulator += item.length;
+      }, 0);
+
+      this.setState({
+        categories: [
+          ...categories,
+          {category: 'All', length: numAll}
+        ]
+      })
+    })
+  }
 
  render() {
-
-   console.log(this.state.categories);
-
    return (
      <div>
        <div className="container">
