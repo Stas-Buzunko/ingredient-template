@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import firebase from 'firebase';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
-import { Button } from 'react-bootstrap';
-// import categories from './Categories';
 
+import Category from './Category';
+import Data from './Data';
 
 class App extends Component {
   constructor(props) {
@@ -53,6 +53,7 @@ class App extends Component {
           .once('value', snapshot => {
             const items = snapshot.val();
             const length = items !== null ? Object.keys(items).length : 0;
+
             this.setState({
               categories: [
                 ...this.state.categories,
@@ -65,51 +66,48 @@ class App extends Component {
     })
   }
 
-  render() {
+  buttonAll(){
+    const numAll = this.state.categories.reduce((accumulator, item) => {
 
+      return accumulator += item.length;
+    }, 0);
 
+    console.log(numAll)
 
-    const categorytItems = this.state.categories.map((category) => {
-      return (
-        <Button bsStyle="primary" key={category.category} >{category.category} </Button>
-      );
-    });
+    this.setState({
+      categories: [
+        ...this.state.categories,
+        {all: numAll}
+      ]
+    }
+  );
 
-    const dataItems = this.state.data.map((item) => {
-      return (
-        <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 item" key={item.id}>
-          <div class="thumbnail">
-          <img className="img-responsive thumbnail" src={item.url} width="250" height="200"  alt=""/>
-           <div class="caption">
-          <h4>{item.name}</h4>
-           <h5>{item.characteristics[0]}</h5>
-           <h5>{item.characteristics[1]}</h5>
-           <h5>{item.characteristics[2]}</h5>
-        </div>
-      </div>
-    </div>
-    );
-  });
-
-
-    return (
-      <div>
-        <div className="container">
-          <div className="text-center">
-            <div className="btn-group buttons">
-              {categorytItems }
-            </div>
-          </div>
-
-          <div className="row rows">
-
-              {dataItems}
-          
-          </div>
-        </div>
-      </div>
-
-    );
-  }
 }
+
+
+
+ render() {
+
+   console.log(this.state.categories);
+
+   return (
+     <div>
+       <div className="container">
+         <div className="text-center">
+           <div className="btn-group buttons">
+             <Category categories={this.state.categories}/>
+           </div>
+         </div>
+
+         <div className="row rows">
+           <Data data={this.state.data}/>
+         </div>
+       </div>
+     </div>
+
+   );
+ }
+}
+
+
 export default App;
