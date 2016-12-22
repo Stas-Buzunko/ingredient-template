@@ -16,30 +16,27 @@ class App extends Component {
     }
   }
   componentDidMount() {
+    this.fetchData()
+    this.fetchCategories()
+  }
+
+  fetchData() {
     const storageRef = firebase.storage().ref('images/ingredients/');
-    // fetch data from /data
-    firebase.database().ref('data').once('value', (snapshot => {
-      this.fetchCategories()
+
+    firebase.database().ref('data').once('value')
+    .then(snapshot => {
       const data = snapshot.val();
       if (data !== null) {
         this.setState({data: []});
-        data.forEach(item => {
-          storageRef.child(`${item.id}.jpg`).getDownloadURL()
-          .then(url => this.setState({
-            data: [
-              ...this.state.data,
-              {
-                ...item,
-                url
-              }
-            ]
-          }))
+        const dataWithPics = data.map(item => {
+          return storageRef.child(`${item.id}.jpg`).getDownloadURL()
+            .then(url => ({...item, url}))
         })
+        return Promise.all(dataWithPics)
       }
-    }))
+    })
+    .then(result => this.setState({data: result}))
   }
-
-
 
   fetchCategories() {
     firebase.database().ref('categories').on('value', snapshot => {
