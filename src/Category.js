@@ -1,26 +1,22 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
 
+const Category = ({categories, filter, onClickItem}) => {
 
-
-const Category = ({categories, filteredCategories, onClickItem}) => {
-  const isActive = (item, filteredCategories) => {
-    return filteredCategories.find((category) => item.category === category.category);
-  };
-
-  const categorytItems = categories.map((item) => {
-    const className = isActive(item, filteredCategories) ? 'active' : '';
-    return (
+  const categorytButtons = categories.map((item) => (
       <Button onClick={() => onClickItem(item)}
-        bsStyle="primary btn-lg"
+        bsStyle="danger"
+        bsSize="lg"
         key={item.category}
-        className={className} >{item.category}({item.length}) </Button>
+        className={item.category === filter ? 'active' : ''}>
+        {item.category}({item.length})
+      </Button>
     )
-  });
+  );
 
   return (
     <div>
-      {categorytItems}
+      {categorytButtons}
     </div>
   )
 };

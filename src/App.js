@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import firebase from 'firebase';
-// import logo from './logo.svg';
 import './App.css';
 
 import Category from './Category';
@@ -13,21 +12,23 @@ class App extends Component {
     this.state = {
       categories: [],
       data: [],
-      filteredCategories: [],
+      filter: 'All',
       filteredData: []
     }
+
+    this.changeFilter = this.changeFilter.bind(this);
   }
 
   componentDidMount() {
+    const { filter, filteredData } = this.state;
     firebase.database().ref('data').on('value', snapshot => Promise.all([
       this.updateData(snapshot.val()),
       this.fetchCategories()
     ]).then(([data, categories]) => {
       this.setState({
         data: data,
-        filteredData: data,
-        categories: [...categories, {category: 'All', length: this.composeCategories(categories)}],
-        filteredCategories: [{category: 'All', length: this.composeCategories(categories)}]
+        filteredData: filter === 'All' ? data : filteredData,
+        categories: [{category: 'All', length: this.composeCategories(categories)}, ...categories ],
       });
     }));
   }
@@ -70,31 +71,27 @@ class App extends Component {
 
   changeFilter(category) {
     this.setState({
-      ...this.state,
-      filteredCategories: [category],
+      filter: category,
       filteredData: this.state.data.filter((item) => category.category === 'All' || item.category === category.category)
     });
   }
 
   render() {
+    const { categories, filter, filteredData } = this.state;
     return (
       <div>
         <div className="container">
           <div className="text-center">
             <div className="btn-group buttons">
-              <Category categories={this.state.categories} filteredCategories={this.state.filteredCategories}
-                onClickItem={this.changeFilter.bind(this)}/>
+              <Category categories={categories} filter={filter}
+                onClickItem={this.changeFilter}/>
               </div>
             </div>
-
-            <div>Selected: {this.state.filteredCategories.map(c => c.category).join(' ')} </div>
-
             <div className="row rows">
-              <Data data={this.state.filteredData}/>
+              <Data data={filteredData}/>
             </div>
           </div>
         </div>
-
       );
     }
   }
