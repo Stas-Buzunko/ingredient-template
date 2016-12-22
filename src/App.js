@@ -42,47 +42,45 @@ class App extends Component {
 
 
   fetchCategories() {
-    firebase.database().ref('categories').on('value', snapshot => {
-      const categories = snapshot.val();
-      if (categories !== null) {
-        this.setState({categories: []});
-        categories.forEach(category => {
-          firebase.database().ref('data')
-          .orderByChild('category')
-          .equalTo(category)
-          .once('value', snapshot => {
-            const items = snapshot.val();
-            const length = items !== null ? Object.keys(items).length : 0;
+     firebase.database().ref('categories').on('value', snapshot => {
+       const categories = snapshot.val();
+       if (categories !== null) {
+         this.setState({categories: []});
+         categories.forEach(category => {
+           firebase.database().ref('data')
+           .orderByChild('category')
+           .equalTo(category)
+           .once('value', snapshot => {
+             const items = snapshot.val();
+             const length = items !== null ? Object.keys(items).length : 0;
+             this.setState({
+               categories: [
+                 ...this.state.categories,
+                 {category, length}
+               ]
+             })
+           })
+         })
+       }
+     }).then(() =>this.buttonAll())
+   }
 
-            this.setState({
-              categories: [
-                ...this.state.categories,
-                {category, length}
-              ]
-            })
-          })
-        })
-      }
-    })
-  }
+   buttonAll(){
+     const numAll = this.state.categories.reduce((accumulator, item) => {
+       return accumulator += item.length;
+     }, 0);
 
-  buttonAll(){
-    const numAll = this.state.categories.reduce((accumulator, item) => {
+     console.log(numAll)
 
-      return accumulator += item.length;
-    }, 0);
+     this.setState({
+       categories: [
+         ...this.state.categories,
+        {category: 'All', length: numAll}
+       ]
+     }
+   );
 
-    console.log(numAll)
-
-    this.setState({
-      categories: [
-        ...this.state.categories,
-        {all: numAll}
-      ]
-    }
-  );
-
-}
+ }
 
 
 
