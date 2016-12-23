@@ -20,14 +20,14 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const { filter, filteredData } = this.state;
+    const { filter } = this.state;
     firebase.database().ref('data').on('value', snapshot => Promise.all([
       this.updateData(snapshot.val()),
       this.fetchCategories()
     ]).then(([data, categories]) => {
       this.setState({
         data: data,
-        filteredData: filter === 'All' ? data : filteredData,
+        filteredData: data.filter((item) => filter === 'All' || item.category === filter),
         categories: [{category: 'All', length: this.composeCategories(categories)}, ...categories ],
       });
     }));
